@@ -51,9 +51,14 @@
 			<p class="h1 h1center" style="display:inline;vertical-align:top">
 			   <xsl:value-of select="$title"/>
 			</p>
-			<div id="{generate-id(@title)}" class="section recordTarget">
-				<xsl:call-template name="recordTargetDisp"/>
-			</div>
+         <div class="top-details">
+            <div>
+               <xsl:call-template name="recordTargetDisp"/>
+            </div>
+            <div>
+               <xsl:call-template name="author"/>
+            </div>
+         </div>
 			<p style="display:inline-block;vertical-align:top;font-size:75%">
 			You can arrange the document to your preferences. Move sections by dragging them. Hide by closing. Use the TOC to review.
 			</p>
@@ -182,57 +187,87 @@
          <table class="header_table">
             <tbody>
                <xsl:for-each select="n1:author/n1:assignedAuthor">
-                  <tr>
-                     <td bgcolor="#3399ff">
-                        <span class="td_label">
-                           <xsl:text>Author</xsl:text>
-                        </span>
-                     </td>
-                     <td>
-                        <xsl:choose>
-                           <xsl:when test="n1:assignedPerson/n1:name">
-                              <xsl:call-template name="show-name">
-                                 <xsl:with-param name="name" select="n1:assignedPerson/n1:name"/>
-                              </xsl:call-template>
-                              <xsl:if test="n1:representedOrganization">
-                                 <xsl:text>, </xsl:text>
-                                 <xsl:call-template name="show-name">
-                                    <xsl:with-param name="name" select="n1:representedOrganization/n1:name"/>
-                                 </xsl:call-template>
-                              </xsl:if>
-                           </xsl:when>
-                           <xsl:when test="n1:assignedAuthoringDevice/n1:softwareName">
-                              <xsl:value-of select="n1:assignedAuthoringDevice/n1:softwareName"/>
-                           </xsl:when>
-                           <xsl:when test="n1:representedOrganization">
-                              <xsl:call-template name="show-name">
-                                 <xsl:with-param name="name" select="n1:representedOrganization/n1:name"/>
-                              </xsl:call-template>
-                           </xsl:when>
-                           <xsl:otherwise>
-                              <xsl:for-each select="n1:id">
-                                 <xsl:call-template name="show-id"/>
-                                 <br/>
-                              </xsl:for-each>
-                           </xsl:otherwise>
-                        </xsl:choose>
-                     </td>
-                  </tr>
-                  <xsl:if test="n1:addr | n1:telecom">
+                  <xsl:if test="n1:assignedPerson/n1:name">
                      <tr>
                         <td bgcolor="#3399ff">
                            <span class="td_label">
-                              <xsl:text>Contact info</xsl:text>
+                              <xsl:text>Author Person Name:</xsl:text>
                            </span>
                         </td>
                         <td>
-                           <xsl:call-template name="show-contactInfo">
-                              <xsl:with-param name="contact" select="."/>
+                           <xsl:call-template name="show-name">
+                              <xsl:with-param name="name" select="n1:assignedPerson/n1:name"/>
                            </xsl:call-template>
                         </td>
                      </tr>
                   </xsl:if>
+                  
+                  <xsl:if test="n1:assignedAuthoringDevice/n1:softwareName">
+                     <tr>
+                        <td bgcolor="#3399ff">
+                           <span class="td_label">
+                              <xsl:text>Authoring Device:</xsl:text>
+                           </span>
+                        </td>
+                        <td>
+                           <xsl:value-of select="n1:assignedAuthoringDevice/n1:softwareName"/>
+                        </td>
+                     </tr>
+                  </xsl:if>
+
+                  <xsl:if test="n1:representedOrganization">
+                     <tr>
+                        <td bgcolor="#3399ff">
+                           <span class="td_label">
+                              <xsl:text>Organization:</xsl:text>
+                           </span>
+                        </td>
+                        <td>
+                           <xsl:call-template name="show-name">
+                              <xsl:with-param name="name" select="n1:representedOrganization/n1:name"/>
+                           </xsl:call-template>
+                        </td>
+                     </tr>
+                 </xsl:if>
+
+                  <xsl:if test="n1:id">
+                     <tr>
+                        <td bgcolor="#3399ff">
+                           <span class="td_label">
+                              <xsl:text>ID:</xsl:text>
+                           </span>
+                        </td>
+                        <td>
+                           <xsl:call-template name="show-id">
+                              <xsl:with-param name="id" select="n1:id"/>
+                           </xsl:call-template>
+                           <br/>
+                        </td>
+                     </tr>
+                  </xsl:if>
+
+
+                  <xsl:if test="n1:addr | n1:telecom">
+                    <xsl:if test="not(n1:addr/@nullFlavor) or not(n1:telecom/@nullFlavor)">
+                        <xsl:call-template name="show-contactInfo">
+                           <xsl:with-param name="contact" select="."/>
+                        </xsl:call-template>
+                    </xsl:if>
+                  </xsl:if>
                </xsl:for-each>
+
+               <tr>
+                  <td bgcolor="#3399ff">
+                     <span class="td_label">
+                        <xsl:text>Authored On:</xsl:text>
+                     </span>
+                  </td>
+                  <td>
+                     <xsl:call-template name="show-time">
+                        <xsl:with-param name="datetime" select="n1:author/n1:time"/>
+                     </xsl:call-template>
+                  </td>
+               </tr>
             </tbody>
          </table>
       </xsl:if>
@@ -981,7 +1016,7 @@
    </xsl:template>
 
    <xsl:template name="recordTargetDisp">
-      <table class="header_table">
+      <table class="header_table recordTargetDisp">
          <tbody>
             <xsl:for-each select="/n1:ClinicalDocument/n1:recordTarget/n1:patientRole">
                <xsl:if test="not(n1:id/@nullFlavor)">
@@ -1020,12 +1055,9 @@
                      </td>
                   </tr>
 					<tr>
-						<td colspan="4">
-							<span class="pure-button" style="padding-top:0;padding-bottom:0" onclick="$('tr.hide').fadeToggle();$('#cdabody').packery()">Patient Detail</span>
-						</td>
 					</tr>
                   <xsl:if test="n1:patient/n1:raceCode | (n1:patient/n1:ethnicGroupCode)">
-                     <tr class="hide" style="display:none">
+                     <tr>
                         <td bgcolor="#3399ff">
                            <span class="td_label">
                               <xsl:text>Race</xsl:text>
@@ -1044,7 +1076,7 @@
                            </xsl:choose>
                         </td>
                   </tr>
-                  <tr class="hide" style="display:none">
+                  <tr>
                         <td bgcolor="#3399ff">
                            <span class="td_label">
                               <xsl:text>Ethnicity</xsl:text>
@@ -1068,7 +1100,7 @@
 					<xsl:call-template name="show-contactInfo">
 						<xsl:with-param name="contact" select="."/>
 					</xsl:call-template>
-                  <tr class="hide" style="display:none">
+                  <tr>
                      <td bgcolor="#3399ff">
                         <span class="td_label">
                            <xsl:text>Patient IDs</xsl:text>
@@ -1575,7 +1607,6 @@
                <xsl:if test="@extension">
                   <xsl:value-of select="@extension"/>
                </xsl:if>
-               <xsl:text> </xsl:text>
                <xsl:value-of select="@root"/>
             </xsl:if>
          </xsl:when>
@@ -1640,7 +1671,7 @@
    <!-- show-contactInfo -->
    <xsl:template name="show-contactInfo">
       <xsl:param name="contact"/>
-		<tr style="display:none" class="hide">
+		<tr>
 			<td bgcolor="#3399ff">
 				<span class="td_label">
 				<xsl:text>Contact info</xsl:text>
